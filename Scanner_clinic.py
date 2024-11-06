@@ -103,39 +103,37 @@ if is_admin and password == admin_password:
     else:
         st.error("Cancellation requests are not in the expected format.")
 
-# Remove appointment section
-st.write("### Remove Appointment")
-remove_date = st.date_input("Select a date to remove appointment:", datetime.now())
-remove_day = remove_date.strftime("%A")
+    # Remove appointment section
+    st.write("### Remove Appointment")
+    remove_date = st.date_input("Select a date to remove appointment:", datetime.now())
+    remove_day = remove_date.strftime("%A")
+    
+    if remove_day in ['Tuesday', 'Thursday']:
+        available_slots = get_available_slots(remove_day, remove_date)
+        remove_slot = st.selectbox("Select a slot to remove:", options=[
+            f"{time.strftime('%H:%M')}" for time in available_slots
+        ])
 
-if remove_day in ['Tuesday', 'Thursday']:
-    available_slots = get_available_slots(remove_day, remove_date)
-    remove_slot = st.selectbox("Select a slot to remove:", options=[
-        f"{time.strftime('%H:%M')}" for time in available_slots
-    ])
+        if st.button("Remove Appointment"):
+            # Convert the selected slot into a datetime object
+            selected_datetime = None
+            for slot in available_slots:
+                if slot.strftime('%H:%M') == remove_slot:
+                    selected_datetime = slot
+                    break
+            if selected_datetime:
+                row_to_remove = st.session_state.appointments_df[
+                 (st.session_state.appointments_df['day'] == remove_day) & 
+                 (st.session_state.appointments_df['datetime'] == selected_datetime) 
+                ]
+                if not row_to_remove.empty:
+                    st.session_state.appointments_df.drop(row_to_remove.index, inplace=True)
+                    save_appointments(st.session_state.appointments_df)
+                    st.success(f"Removed appointment on {remove_day} at {remove_slot}.")
+                else:
+                    st.error("No such appointment found.")
 
-    if st.button("Remove Appointment"):
-        # Convert the selected slot into a datetime object
-        selected_datetime = None
-        for slot in available_slots:
-            if slot.strftime('%H:%M') == remove_slot:
-                selected_datetime = slot
-                break
-        
-        if selected_datetime:
-            # Find the row to remove based on the exact datetime match
-            row_to_remove = st.session_state.appointments_df[
-                (st.session_state.appointments_df['day'] == remove_day) & 
-                (st.session_state.appointments_df['datetime'] == selected_datetime)
-            ]
-            if not row_to_remove.empty:
-                st.session_state.appointments_df.drop(row_to_remove.index, inplace=True)
-                save_appointments(st.session_state.appointments_df)
-                st.success(f"Removed appointment on {remove_day} at {remove_slot}.")
-            else:
-                st.error("No such appointment found.")
-        else:
-            st.error("Could not find the selected slot.")
+                    
 
 else:
     # Public section for making reservations
