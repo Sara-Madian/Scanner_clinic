@@ -18,6 +18,7 @@ def load_appointments():
 # Function to save appointments to a CSV file
 def save_appointments(df):
     df.to_csv(APPOINTMENTS_FILE, index=False)
+    print("Appointments saved.")
 
 # Function to load cancellation requests from a CSV file
 def load_cancellation_requests():
@@ -32,6 +33,8 @@ def save_cancellation_requests(requests):
 # Initialize appointment data
 if 'appointments_df' not in st.session_state:
     st.session_state.appointments_df = load_appointments()
+    if st.session_state.appointments_df.empty:
+        st.session_state.appointments_df = pd.DataFrame(columns=['day', 'datetime', 'name', 'contact'])
 
 # Initialize cancellation requests
 if 'cancellation_requests' not in st.session_state:
@@ -127,7 +130,7 @@ if is_admin and password == admin_password:
                  (st.session_state.appointments_df['datetime'] == selected_datetime) 
                 ]
                 if not row_to_remove.empty:
-                    st.session_state.appointments_df.drop(row_to_remove.index, inplace=True)
+                     st.session_state.appointments_df = st.session_state.appointments_df.drop(row_to_remove.index)
                     save_appointments(st.session_state.appointments_df)
                     st.success(f"Removed appointment on {remove_day} at {remove_slot}.")
                 else:
