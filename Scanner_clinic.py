@@ -18,9 +18,15 @@ def load_appointments():
     return pd.DataFrame(columns=['day', 'datetime', 'name', 'contact'])
 
 # Function to save appointments to a CSV file
-def save_appointments(df):
+def save_appointments(df, file_path):
     df.to_csv(APPOINTMENTS_FILE, index=False)
     print("Appointments saved.")
+def add_appointment(new_appointment):
+    # Assuming 'appointments_df' is your DataFrame in the session state
+    df = st.session_state.appointments_df
+    df = df.append(new_appointment, ignore_index=True)
+    save_appointments(df, APPOINTMENTS_FILE)  # Save to the correct path
+    st.session_state.appointments_df = df  # Update the session state
 
 # Function to load cancellation requests from a CSV file
 def load_cancellation_requests():
