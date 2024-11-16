@@ -17,15 +17,26 @@ def load_appointments():
         return df
     return pd.DataFrame(columns=['day', 'datetime', 'name', 'contact'])
 
+
+if not isinstance(st.session_state.appointments_df, pd.DataFrame):
+    st.error("Appointments DataFrame is not a valid Pandas DataFrame.")
+    st.stop()
+
+st.write("Appointments DataFrame:")
+st.write(st.session_state.appointments_df)
+
 # Function to save appointments to a CSV file
-def save_appointments(df, file_path):
-    df.to_csv(APPOINTMENTS_FILE, index=False)
-    print("Appointments saved.")
+def save_appointments(df):
+    try:
+        df.to_csv(APPOINTMENTS_FILE, index=False)
+        st.success(f"Appointments saved successfully to {APPOINTMENTS_FILE}.")
+    except Exception as e:
+        st.error(f"Error saving appointments: {e}")
 def add_appointment(new_appointment):
     # Assuming 'appointments_df' is your DataFrame in the session state
     df = st.session_state.appointments_df
     df = df.append(new_appointment, ignore_index=True)
-    save_appointments(df, APPOINTMENTS_FILE)  # Save to the correct path
+    save_appointments(df)  # Save to the correct path
     st.session_state.appointments_df = df  # Update the session state
 
 # Function to load cancellation requests from a CSV file
