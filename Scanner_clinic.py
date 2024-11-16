@@ -131,7 +131,7 @@ if is_admin and password == admin_password:
                  (st.session_state.appointments_df['datetime'] == selected_datetime) 
                 ]
                 if not row_to_remove.empty:
-                     st.session_state.appointments_df = st.session_state.appointments_df.drop(row_to_remove.index)
+                    st.session_state.appointments_df = st.session_state.appointments_df.drop(row_to_remove.index)
                     save_appointments(st.session_state.appointments_df)
                     st.success(f"Removed appointment on {remove_day} at {remove_slot}.")
                 else:
