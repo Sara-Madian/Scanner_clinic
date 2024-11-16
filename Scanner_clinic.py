@@ -18,12 +18,19 @@ def load_appointments():
     return pd.DataFrame(columns=['day', 'datetime', 'name', 'contact'])
 
 
-if not isinstance(st.session_state.appointments_df, pd.DataFrame):
-    st.error("Appointments DataFrame is not a valid Pandas DataFrame.")
-    st.stop()
+# Initialize appointment data if not in session state
+if 'appointments_df' not in st.session_state:
+    st.session_state.appointments_df = load_appointments()
+    if st.session_state.appointments_df.empty:
+        st.session_state.appointments_df = pd.DataFrame(columns=['day', 'datetime', 'name', 'contact'])
 
-st.write("Appointments DataFrame:")
-st.write(st.session_state.appointments_df)
+# Initialize cancellation requests if not in session state
+if 'cancellation_requests' not in st.session_state:
+    st.session_state.cancellation_requests = []
+
+# Ensure 'datetime' column is of datetime type
+if 'datetime' in st.session_state.appointments_df.columns:
+    st.session_state.appointments_df['datetime'] = pd.to_datetime(st.session_state.appointments_df['datetime'], errors='coerce')
 
 # Function to save appointments to a CSV file
 def save_appointments(df):
@@ -32,8 +39,8 @@ def save_appointments(df):
         st.success(f"Appointments saved successfully to {APPOINTMENTS_FILE}.")
     except Exception as e:
         st.error(f"Error saving appointments: {e}")
+
 def add_appointment(new_appointment):
-    # Assuming 'appointments_df' is your DataFrame in the session state
     df = st.session_state.appointments_df
     df = df.append(new_appointment, ignore_index=True)
     save_appointments(df)  # Save to the correct path
@@ -48,20 +55,6 @@ def load_cancellation_requests():
 # Function to save cancellation requests to a CSV file
 def save_cancellation_requests(requests):
     pd.Series(requests).to_csv(CANCELLATION_REQUESTS_FILE, index=False)
-
-# Initialize appointment data
-if 'appointments_df' not in st.session_state:
-    st.session_state.appointments_df = load_appointments()
-    if st.session_state.appointments_df.empty:
-        st.session_state.appointments_df = pd.DataFrame(columns=['day', 'datetime', 'name', 'contact'])
-
-# Initialize cancellation requests
-if 'cancellation_requests' not in st.session_state:
-    st.session_state.cancellation_requests = load_cancellation_requests()
-
-# Ensure 'datetime' column is of datetime type
-if 'datetime' in st.session_state.appointments_df.columns:
-    st.session_state.appointments_df['datetime'] = pd.to_datetime(st.session_state.appointments_df['datetime'], errors='coerce')
 
 # Function to get available slots
 def get_available_slots(day, date):
@@ -86,6 +79,7 @@ def get_available_slots(day, date):
 
     available_slots = [slot for slot in slots if slot not in occupied_slots.values]
     return available_slots
+
 
 # Streamlit app layout
 st.title("Welcome to Intraoral Scanner Reservation System")
@@ -154,8 +148,6 @@ if is_admin and password == admin_password:
                     st.success(f"Removed appointment on {remove_day} at {remove_slot}.")
                 else:
                     st.error("No such appointment found.")
-
-                    
 
 else:
     # Public section for making reservations
@@ -227,3 +219,4 @@ else:
             st.success("Your cancellation request has been sent.")
         else:
             st.error("Please enter a valid message to send.")
+
