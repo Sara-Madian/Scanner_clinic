@@ -11,7 +11,8 @@ admin_password = "nlheesahh"  # Admin password
 # Function to load appointments from a CSV file
 def load_appointments():
     if os.path.exists(APPOINTMENTS_FILE):
-        df = pd.read_csv(APPOINTMENTS_FILE, parse_dates=['datetime'])
+        date_parser = lambda x: pd.to_datetime(x, format='%Y-%m-%d %H:%M:%S')
+        df = pd.read_csv(APPOINTMENTS_FILE, parse_dates=['datetime'], date_parser=date_parser)
         return df
     return pd.DataFrame(columns=['day', 'datetime', 'name', 'contact'])
 
